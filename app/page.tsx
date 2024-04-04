@@ -1,5 +1,6 @@
 "use client";
 import ReactECharts from "echarts-for-react";
+import {Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure} from "@nextui-org/react";
 
 import { useEffect, useState } from "react";
 import { getUserAfterLogin } from "../utils/supabase/getUserAfterLogin";
@@ -8,6 +9,15 @@ import options from "@/utils/data/weightData";
 
 export default function Page() {
   const [User, setUser] = useState(null);
+  const [Appointment, setAppointment] = useState(0);
+  const {isOpen, onOpen, onClose} = useDisclosure();
+
+  const handleAppointmentClick = (i: number, e: Event) => {
+    setAppointment(i)
+    console.log(i)
+    console.log(e)
+    onOpen();
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,14 +54,14 @@ export default function Page() {
                 <div id="title">
                   <h2 className="text-2xl font-bold text-center mb-3">Appointments</h2>
                 </div>
-                {/*map over a 10 index array, listing out a date, apointment address, and random doctor name for each*/}
+                {/*map over a 5 index array, listing out a date, apointment address, and random doctor name for each*/}
                 <div className="flex flex-row">
                   <div className="w-1/3">Date</div>
                   <div className="w-1/3">Address</div>
                   <div className="w-1/3">Doctor</div>
                 </div>
                 {Array.from({ length: 5 }, (_, i) => (
-                  <div className="flex flex-row border-y-1 my-3 p-2 bg-yellow-200 bg-opacity-70 rounded-lg" key={i}>
+                  <div className="flex flex-row border-y-1 my-3 p-2 bg-yellow-200 bg-opacity-70 rounded-lg hover:bg-opacity-40 cursor-pointer" key={i} onClick = {(e) => handleAppointmentClick(i, e)}>
                     <div className="w-1/3">12/3/2024</div>
                     <div className="w-1/3">123 Doctor Rd.</div>
                     <div className="w-1/3">Dr. John Smith</div>
@@ -64,7 +74,7 @@ export default function Page() {
                 <div id="title">
                   <h2 className="text-2xl font-bold text-center mb-3">Doctors</h2>
                 </div>
-                {/*map over a 10 index array, listing out doctors and their phone numbers*/}
+                {/*map over a 5 index array, listing out doctors and their phone numbers*/}
                 <div className="flex flex-row">
                   <div className="w-1/2">Doctor</div>
                   <div className="w-1/2">Phone</div>
@@ -78,6 +88,26 @@ export default function Page() {
               </div>
             </div>
           </div>
+          <Modal backdrop={"blur"} isOpen={isOpen} onClose={onClose}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalBody className="text-black">
+                <div className="flex flex-row">
+                  <div className="w-1/3">Date</div>
+                  <div className="w-1/3">Address</div>
+                  <div className="w-1/3">Doctor</div>
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <Button color="danger" variant="light" onPress={onClose}>
+                  Close
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
         </div>
       ) : (
         <p>Loading...</p>
