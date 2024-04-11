@@ -98,6 +98,18 @@ export default function Page() {
                   <div className="w-1/3">Address</div>
                   <div className="w-1/3">Doctor</div>
                 </div>
+                    
+                  
+                <div className="flex flex-row ">
+                  <div className="w-1/3">12/3/2024</div>
+                  <div className="w-1/3">123 Doctor Rd.</div>
+                  <div className="w-1/3">Dr. John Smith</div>
+                  </div>
+                    
+                    <div>
+                      <h2 className="text-2xl font-bold text-center mb-3">Notes</h2>
+                      <p>Notes go here text box</p>
+                    </div>
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="light" onPress={onClose}>
