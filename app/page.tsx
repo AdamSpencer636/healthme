@@ -16,27 +16,46 @@ import {
 	DropdownMenu,
 	DropdownSection,
 	DropdownItem,
+	Navbar,
+	NavbarBrand,
+	NavbarContent,
+	NavbarItem,
+	NavbarMenuToggle,
+	NavbarMenu,
+	NavbarMenuItem,
+	Link,
+	Spinner,
+	DatePicker,
 } from "@nextui-org/react";
+
 
 import { useEffect, useState } from "react";
 import { getUserAfterLogin } from "../utils/supabase/getUserAfterLogin";
 import {
 	getAppointments,
 	insertAppointment,
+	deleteAppointment,
+	updateAppointment,
 } from "../utils/supabase/Appointments";
-import { getDoctors, insertDoctor } from "../utils/supabase/Doctors";
+import {
+	getDoctors,
+	insertDoctor,
+	updateDoctor,
+	deleteDoctor,
+} from "../utils/supabase/Doctors";
 
 import options from "@/utils/data/weightData";
+import classNames from "classnames";
 
 export default function Page() {
-  const [changed, setChanged] = useState(false);
-  const [User, setUser] = useState(null);
-  const [id, setId] = useState(0);
+	const [changed, setChanged] = useState(false);
+	const [User, setUser] = useState(null);
+	const [id, setId] = useState(0);
 	const [note, setNote] = useState("");
 	const [appointments, setAppointments] = useState([]);
-	const [appointment, setAppointment] = useState(0);
+	const [appointment, setAppointment] = useState();
 	const [doctors, setDoctors] = useState([]);
-	const [doctor, setDoctor] = useState(0);
+	const [doctor, setDoctor] = useState();
 	const [doctorName, setDoctorName] = useState("");
 	const [doctorPhone, setDoctorPhone] = useState("");
 	const [doctorSpecialty, setDoctorSpecialty] = useState("");
@@ -46,49 +65,89 @@ export default function Page() {
 	const [modalMode, setModalMode] = useState("appointment"); // [appointment, addAppointment, addDoctor]
 	const { isOpen, onOpen, onClose } = useDisclosure();
 
+	const currentData = new Date().toISOString().slice(0, 10);
+
+	
+
 	const handleAppointmentClick = (i: number, e: MouseEvent) => {
 		setAppointment(appointments[i]);
-		console.log(i);
-		console.log(e);
 		onOpen();
-	};
-
-	const handleAppointmentSubmit = (i: number, e: any) => {
-		console.log(i);
-		console.log(e);
-		console.log(note);
-		onClose();
 	};
 
 	const handleAddAppointment = () => {
 		const appointmentData = {
-			"DoctorFname": appointmentDoctor,
-			"Patient": id,
-			"Date": appointmentDate,
-			"address": appointmentAddress,
+			DoctorFname: appointmentDoctor,
+			Patient: id,
+			Date: appointmentDate,
+			address: appointmentAddress,
 		};
-    insertAppointment(appointmentData);
-    setChanged(!changed);
+		insertAppointment(appointmentData);
+		setChanged(!changed);
+	};
+
+	const handleUpdateAppointment = (formData: FormData) => {
+		if (appointmentDoctor == "") {
+			
+		}
+		const appointmentData = {
+			DoctorFname: appointmentDoctor,
+			Patient: id,
+			Date: formData.get("date"),
+			address: formData.get("address"),
+			Notes: note,
+		};
+		updateAppointment(appointment.id, appointmentData);
+		setAppointmentDoctor("");
+		setChanged(!changed);
+		onClose();
+	};
+
+	const handleDeleteAppointment = (id: number) => {
+		deleteAppointment(id);
+		setChanged(!changed);
 	};
 
 	const handleAddDoctor = () => {
 		const doctorData = {
-			"Name": doctorName,
-			"Phone": doctorPhone,
-			"Specialty": doctorSpecialty,
-			"userid": id,
+			Name: doctorName,
+			Phone: doctorPhone,
+			Specialty: doctorSpecialty,
+			userid: id,
 		};
-    insertDoctor(doctorData);
-    setChanged(!changed);
-  };
-  
-  const handleChangeDoctorName = (key) => {
-    doctors.forEach((doctor) => {
-      if (doctor.id == key) {
-			setAppointmentDoctor(doctor.Name);
-		}
-    });
-  }
+		insertDoctor(doctorData);
+		setChanged(!changed);
+	};
+
+	const handleUpdateDoctor = (formdata: FormData) => {
+		const doctorData = {
+			Name: formdata.get("name"),
+			Phone: formdata.get("phone"),
+			Specialty: formdata.get("specialty"),
+			userid: id,
+		};
+		updateDoctor(doctor.id, doctorData);
+		setChanged(!changed);
+	};
+
+	const handleDeleteDoctor = (id) => {
+		deleteDoctor(id);
+		setChanged(!changed);
+	};
+
+	const handleChangeDoctorName = (key) => {
+		doctors.forEach((doctor) => {
+			if (doctor.id == key) {
+				setAppointmentDoctor(doctor.Name);
+			}
+		});
+	};
+
+	const handleLogOut = () => {
+		localStorage.removeItem("userid");
+		setUser(null);
+		//send user to login page
+		window.location.href = "/login";
+	};
 
 	useEffect(() => {
 		const fetchData = async () => {
@@ -101,10 +160,10 @@ export default function Page() {
 			const user = await getUserAfterLogin(userId);
 
 			// Set the user state
-      setUser(user);
-      
-      // Set the id state
-      setId(userId);
+			setUser(user);
+
+			// Set the id state
+			setId(userId);
 
 			// Log the user data
 			console.log(user);
@@ -125,11 +184,51 @@ export default function Page() {
 		};
 
 		fetchData();
-  }, [changed]);
-  
+	}, [changed]);
 
 	return (
 		<main className="h-screen">
+			<Navbar className="bg-inherit">
+				<NavbarBrand>
+					<p className="font-bold text-inherit">HealthMe</p>
+				</NavbarBrand>
+				{!User ? (
+					<NavbarContent justify="end">
+						<NavbarItem className="hidden lg:flex">
+							<Link href="#">Login</Link>
+						</NavbarItem>
+						<NavbarItem>
+							<Button
+								as={Link}
+								color="primary"
+								href="#"
+								variant="flat"
+							>
+								Sign Up
+							</Button>
+						</NavbarItem>
+					</NavbarContent>
+				) : (
+					<NavbarContent justify="end">
+						<NavbarItem className="hidden lg:flex text-white">
+							<Link href="#">
+								Welcome {User[0].Fname} {User[0].Lname}
+							</Link>
+						</NavbarItem>
+						<NavbarItem>
+							<Button
+								as={Link}
+								color="primary"
+								href="#"
+								variant="flat"
+								onClick={() => handleLogOut()}
+							>
+								Log out
+							</Button>
+						</NavbarItem>
+					</NavbarContent>
+				)}
+			</Navbar>
 			{User ? (
 				<div className="h-full p-5">
 					<div className="w-full flex justify-center">
@@ -148,7 +247,6 @@ export default function Page() {
 										Appointments
 									</h2>
 								</div>
-								{/*map over a 5 index array, listing out a date, apointment address, and random doctor name for each*/}
 								<div className="flex flex-row">
 									<div className="w-1/3">Date</div>
 									<div className="w-1/3">Address</div>
@@ -156,21 +254,42 @@ export default function Page() {
 								</div>
 								{appointments.map((appointment, i) => (
 									<div
-										className="flex flex-row border-y-1 my-3 p-2 bg-yellow-200 bg-opacity-70 rounded-lg hover:bg-opacity-40 cursor-pointer"
+										className={classNames("flex flex-row border-y-1 my-3 p-2 bg-opacity-70 rounded-lg hover:bg-opacity-40 cursor-pointer",
+											{
+												"bg-red-500": new Date(appointment.Date) < new Date(currentData),
+												"bg-green-500": new Date(appointment.Date) > new Date(currentData),
+												"bg-yellow-500": new Date(appointment.Date) == new Date(currentData)
+										}
+										)}
 										key={i}
 										onClick={(e) => {
 											setModalMode("appointment");
+											console.log(appointment);
 											handleAppointmentClick(i, e);
 										}}
 									>
-										<div className="w-1/3">
+										<div className="w-1/3 flex items-center">
 											{appointment.Date}
 										</div>
-										<div className="w-1/3">
+										<div className="w-1/3 flex items-center">
 											{appointment.address}
 										</div>
-										<div className="w-1/3">
+										<div className="w-1/3 flex items-center">
 											{appointment.DoctorFname}
+										</div>
+										<div>
+											<Button
+												color="danger"
+												variant="light"
+												onClick={(e) => {
+													handleDeleteAppointment(
+														appointment.id
+													);
+													setChanged(!changed);
+												}}
+											>
+												Delete
+											</Button>
 										</div>
 									</div>
 								))}
@@ -202,17 +321,37 @@ export default function Page() {
 								</div>
 								{doctors.map((doctor, i) => (
 									<div
-										className="flex flex-row border-y-1 my-3 p-2  rounded-lg"
+										className="flex flex-row border-y-1 my-3 p-2  bg-opacity-70 rounded-lg hover:bg-slate-600 cursor-pointer"
+										onClick={(e) => {
+											setModalMode("doctor");
+											console.log(doctor);
+											setDoctor(doctor);
+											onOpen();
+										}}
 										key={i}
 									>
-										<div className="w-1/3">
+										<div className="w-1/3 flex items-center">
 											{doctor.Name}
 										</div>
-										<div className="w-1/3">
+										<div className="w-1/3 flex items-center">
 											{doctor.Phone}
 										</div>
-										<div className="w-1/3">
+										<div className="w-1/4 flex items-center">
 											{doctor.Specialty}
+										</div>
+										<div>
+											<Button
+												color="danger"
+												variant="light"
+												onClick={(e) => {
+													handleDeleteDoctor(
+														doctor.id
+													);
+													setChanged(!changed);
+												}}
+											>
+												Delete
+											</Button>
 										</div>
 									</div>
 								))}
@@ -235,7 +374,7 @@ export default function Page() {
 						{modalMode === "appointment" ? (
 							<ModalContent>
 								{(onClose) => (
-									<>
+									<form action={handleUpdateAppointment}>
 										<ModalBody className="text-black">
 											<div className="flex flex-row">
 												<div className="w-1/3">
@@ -249,18 +388,48 @@ export default function Page() {
 												</div>
 											</div>
 
-											<div className="flex flex-row ">
-												<div className="w-1/3">
-													{appointment.Date}
-												</div>
-												<div className="w-1/3">
-													{appointment.address}
-												</div>
-												<div className="w-1/3">
-													{appointment.DoctorFname}
-												</div>
+											<div className="flex flex-row space-x-2">
+												<DatePicker
+													isRequired
+													name="date"
+													className="w-1/3"
+													label="Date"
+												/>
+												<Input
+													className="w-1/3"
+													isRequired
+													name="address"
+													placeholder={
+														appointment.address
+													}
+												/>
+												<Dropdown>
+													<DropdownTrigger>
+														<Button className="w-1/3">
+															{appointmentDoctor}
+														</Button>
+													</DropdownTrigger>
+													<DropdownMenu
+														items={doctors}
+														onAction={(key) => {
+															console.log(key);
+															handleChangeDoctorName(
+																key
+															);
+														}}
+														aria-label="Doctors"
+													>
+														{(item) => (
+															<DropdownItem
+																key={item.id}
+																className="text-black"
+															>
+																{item.Name}
+															</DropdownItem>
+														)}
+													</DropdownMenu>
+												</Dropdown>
 											</div>
-
 											<div className="w-full flex flex-col gap-2">
 												<Textarea
 													label="Notes"
@@ -282,17 +451,12 @@ export default function Page() {
 											<Button
 												color="primary"
 												variant="flat"
-												onPress={(e) =>
-													handleAppointmentSubmit(
-														appointment,
-														e
-													)
-												}
+												type="submit"
 											>
 												Submit
 											</Button>
 										</ModalFooter>
-									</>
+									</form>
 								)}
 							</ModalContent>
 						) : null}
@@ -329,11 +493,12 @@ export default function Page() {
 													</DropdownTrigger>
 													<DropdownMenu
 														items={doctors}
-                            onAction={(key) => {
-                              console.log(key);
-                              handleChangeDoctorName(key);
-															}
-														}
+														onAction={(key) => {
+															console.log(key);
+															handleChangeDoctorName(
+																key
+															);
+														}}
 														aria-label="Doctors"
 													>
 														{(item) => (
@@ -420,13 +585,12 @@ export default function Page() {
 											<Button
 												color="danger"
 												variant="light"
-                        onPress={() => {
-                          setDoctorName("");
+												onPress={() => {
+													setDoctorName("");
 													setDoctorPhone("");
-                          setDoctorSpecialty("");
-                          onClose();
-                        }
-                        }
+													setDoctorSpecialty("");
+													onClose();
+												}}
 											>
 												Close
 											</Button>
@@ -448,10 +612,74 @@ export default function Page() {
 								)}
 							</ModalContent>
 						) : null}
+						{modalMode === "doctor" ? (
+							<ModalContent>
+								{(onClose) => (
+									<form action={handleUpdateDoctor}>
+										<ModalBody className="text-black">
+											<div className="flex flex-row">
+												<div className="w-1/3">
+													Doctor
+												</div>
+												<div className="w-1/3">
+													Phone
+												</div>
+												<div className="w-1/3">
+													Specialty
+												</div>
+											</div>
+
+											<div className="flex flex-row space-x-2">
+												<Input
+													className="w-1/3"
+													isRequired
+													name="name"
+													placeholder={doctor.Name}
+												/>
+												<Input
+													className="w-1/3"
+													isRequired
+													name="phone"
+													placeholder={
+														doctor.Phone
+													}
+												/>
+												<Input
+													className="w-1/3"
+													isRequired
+													name="specialty"
+													placeholder={
+														doctor.Specialty
+													}
+												/>
+											</div>
+										</ModalBody>
+										<ModalFooter>
+											<Button
+												color="danger"
+												variant="light"
+												onPress={onClose}
+											>
+												Close
+											</Button>
+											<Button
+												color="primary"
+												variant="flat"
+												type="submit"
+											>
+												Submit
+											</Button>
+										</ModalFooter>
+									</form>
+								)}
+							</ModalContent>
+						) : null}
 					</Modal>
 				</div>
 			) : (
-				<p>Loading...</p>
+				<div className="h-full flex justify-center items-center">
+					<Spinner size="lg" />
+				</div>
 			)}
 		</main>
 	);
