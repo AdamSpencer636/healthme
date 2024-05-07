@@ -149,7 +149,11 @@ export default function Page() {
 		setChanged(!changed);
 	};
 
-	const handleAddDoctor = () => {
+  const handleAddDoctor = () => {
+    if (doctorName === "" || doctorPhone === "" || doctorSpecialty === "") {
+      sendErrorToast("Please completely fill out form");
+      return;
+    }
 		const doctorData = {
 			Name: doctorName,
 			Phone: doctorPhone,
@@ -161,7 +165,15 @@ export default function Page() {
 		setChanged(!changed);
 	};
 
-	const handleUpdateDoctor = (formdata: FormData) => {
+  const handleUpdateDoctor = (formdata: FormData) => {
+    if (
+		formdata.get("name") == "" ||
+		formdata.get("phone") == "" ||
+		formdata.get("specialty") == ""
+	) {
+      sendErrorToast("Please completely fill out form");
+      return;
+	}
 		const doctorData = {
 			Name: formdata.get("name"),
 			Phone: formdata.get("phone"),

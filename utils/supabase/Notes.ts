@@ -34,7 +34,9 @@ export const insertNote = async (noteData) => {
     const { data, error } = await supabase.from("Notes").insert(noteData);
     if (error) {
         console.error(error);
+        return "Failed to insert note. Please try again. if the problem persists, please try logging in.";
     }
+    return true
 }
 
 //function to update a note in the database
@@ -60,5 +62,7 @@ export const deleteNote = async (id) => {
     const { data, error } = await supabase.from("Notes").delete().eq("id", id);
     if (error) {
         console.error(error);
+        return "Failed to delete note. Please try again.";
     }
+    return true;
 }
